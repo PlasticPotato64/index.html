@@ -4,314 +4,167 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Media Player</title>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Media Player"/>
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22Media+Player%22%2C%22short_name%22%3A%22Player%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg+xmlns%3D%2527http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527+viewBox%3D%25270+0+192+192%2527%253E%253Crect+width%3D%2527192%2527+height%3D%2527192%2527+rx%3D%252724%2527+fill%3D%2527%2523333%2527%2F%253E%253Ccircle+cx%3D%252796%2527+cy%3D%252796%2527+r%3D%252755%2527+fill%3D%2527none%2527+stroke%3D%2527white%2527+stroke-width%3D%25278%2527%2F%253E%253Cpolygon+points%3D%252778%2C68+78%2C124+130%2C96%2527+fill%3D%2527white%2527%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D"/>
+<script>
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+      self.addEventListener('fetch', e => {
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], {type: 'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    font-size: 12px;
-    background: #3a6ea5;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    background: #f0f0f0;
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 16px;
+    padding: 10px;
   }
 
   .window {
     width: 100%;
-    max-width: 400px;
-    background: #ece9d8;
-    border: 1px solid #6a6a6a;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-    border-radius: 6px 6px 3px 3px;
-    overflow: hidden;
+    max-width: 420px;
+    background: white;
+    border: 1px solid #999;
   }
 
-  /* Title bar */
   .titlebar {
-    background: linear-gradient(180deg, #4a9fd4 0%, #2163aa 45%, #1a52a0 50%, #2e6bbf 100%);
-    padding: 5px 6px 4px;
+    background: #333;
+    padding: 6px 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-radius: 5px 5px 0 0;
-    user-select: none;
   }
-
-  .titlebar-left {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: white;
-    font-size: 11px;
-    font-weight: 700;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
-    letter-spacing: 0.2px;
-  }
-
-  .titlebar-btns { display: flex; gap: 2px; }
-
+  .titlebar-left { color: white; font-size: 13px; font-weight: bold; }
+  .titlebar-btns { display: flex; gap: 4px; }
   .tbtn {
-    width: 21px; height: 17px;
-    border-radius: 3px;
-    border: 1px solid rgba(0,0,0,0.4);
-    cursor: pointer; font-size: 9px;
+    width: 20px; height: 20px;
+    border: 1px solid #888; cursor: pointer; font-size: 10px;
     display: flex; align-items: center; justify-content: center;
-    color: #000; font-weight: bold;
-    background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
-    font-family: 'Segoe UI', sans-serif;
+    color: white; font-weight: bold; background: #555;
   }
-  .tbtn:hover { background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%); }
-  .tbtn.close { background: linear-gradient(180deg, #e25050 0%, #b82020 100%); color: white; font-size: 10px; }
-  .tbtn.close:hover { background: linear-gradient(180deg, #f06060 0%, #cc3030 100%); }
+  .tbtn:hover { background: #777; }
+  .tbtn.close { background: #aa2222; }
+  .tbtn.close:hover { background: #cc3333; }
 
-  /* Menu bar */
   .menubar {
-    background: #ece9d8;
-    border-bottom: 1px solid #aca899;
-    padding: 1px 4px;
+    background: #eee;
+    border-bottom: 1px solid #ccc;
+    padding: 2px 4px;
     display: flex;
   }
-  .menu-item {
-    padding: 2px 7px; cursor: pointer;
-    color: #000; font-size: 11px;
-    border-radius: 2px;
-  }
-  .menu-item:hover { background: #316ac5; color: white; }
+  .menu-item { padding: 2px 8px; cursor: pointer; color: #000; font-size: 12px; }
+  .menu-item:hover { background: #ccc; }
 
   .win-body {
-    padding: 6px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    background: #ece9d8;
+    gap: 6px;
+    background: white;
   }
 
-  /* Now playing */
   .now-playing {
-    background: #1a1a1a;
+    background: #222;
     border: 1px solid #555;
     padding: 8px 10px;
-    border-radius: 2px;
   }
-  .np-status {
-    font-size: 9px; color: #4a88cc;
-    letter-spacing: 2px; text-transform: uppercase;
-    margin-bottom: 3px; font-family: 'Courier New', monospace;
-  }
-  .np-title {
-    color: #e8e8e8; font-size: 14px; font-weight: 600;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    margin-bottom: 3px;
-  }
-  .np-meta {
-    display: flex; justify-content: space-between;
-    font-size: 9px; color: #446688;
-    font-family: 'Courier New', monospace;
-  }
+  .np-status { font-size: 10px; color: #aaa; text-transform: uppercase; margin-bottom: 3px; }
+  .np-title { color: white; font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+  .np-meta { display: flex; justify-content: space-between; font-size: 10px; color: #888; }
 
-  /* Progress */
   .progress-wrap {
-    background: #fff;
-    border: 1px solid #7a7a7a;
-    border-right-color: #ddd;
-    border-bottom-color: #ddd;
-    height: 13px; cursor: pointer; position: relative;
-    overflow: hidden;
+    background: #ddd; border: 1px solid #aaa;
+    height: 14px; cursor: pointer; position: relative; overflow: hidden;
   }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(180deg, #5a9fd4 0%, #2060b0 100%);
-    transition: width 0.1s linear;
-  }
-  .progress-fill::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: rgba(255,255,255,0.2);
-  }
-  .time-row {
-    display: flex; justify-content: space-between;
-    font-size: 9px; color: #666;
-    font-family: 'Courier New', monospace;
-    margin-top: 1px;
-  }
+  .progress-fill { height: 100%; background: #555; transition: width 0.1s linear; }
+  .time-row { display: flex; justify-content: space-between; font-size: 10px; color: #666; margin-top: 2px; }
 
-  /* Controls */
-  .controls-panel {
-    background: linear-gradient(180deg, #f0ede0 0%, #e4e0cc 100%);
-    border: 1px solid #aca899;
-    padding: 5px 6px;
-  }
-  .controls-row {
-    display: flex; align-items: center;
-    justify-content: center; gap: 3px;
-  }
+  .controls-panel { background: #eee; border: 1px solid #ccc; padding: 6px; }
+  .controls-row { display: flex; align-items: center; justify-content: center; gap: 4px; }
 
   .ctrl-btn {
-    background: linear-gradient(180deg, #f5f2e8 0%, #dedad0 100%);
-    border: 1px solid #aaa;
-    border-bottom-color: #888; border-right-color: #888;
-    cursor: pointer; font-size: 11px;
-    padding: 4px 10px; min-height: 24px; color: #000;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    background: white; border: 1px solid #999; cursor: pointer; font-size: 12px;
+    padding: 5px 12px; min-height: 28px; color: #000;
     display: flex; align-items: center; justify-content: center;
-    white-space: nowrap; user-select: none;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    border-radius: 2px;
-    letter-spacing: 0.3px;
+    white-space: nowrap; user-select: none; font-family: Arial, sans-serif;
   }
-  .ctrl-btn:hover {
-    background: linear-gradient(180deg, #ddeeff 0%, #c8dff5 100%);
-    border-color: #6a9fd0;
-  }
-  .ctrl-btn:active {
-    background: linear-gradient(180deg, #c0d8f0 0%, #aacce8 100%);
-    border-top-color: #888; border-left-color: #888;
-    border-bottom-color: #ddd; border-right-color: #ddd;
-    transform: translateY(1px);
-  }
-  .ctrl-btn:disabled { color: #999; cursor: default; background: linear-gradient(180deg, #f0ede0 0%, #e8e4d8 100%); }
-  .ctrl-btn.active {
-    background: linear-gradient(180deg, #c0d8f5 0%, #a8ccee 100%);
-    border-color: #4a8fd0; color: #003080;
-    border-top-color: #888; border-left-color: #888;
-  }
-  .play-btn { min-width: 52px; font-size: 13px; }
+  .ctrl-btn:hover { background: #ddd; }
+  .ctrl-btn:active { background: #bbb; }
+  .ctrl-btn:disabled { color: #bbb; cursor: default; background: #f5f5f5; }
+  .ctrl-btn.active { background: #555; color: white; }
+  .play-btn { min-width: 50px; font-size: 14px; }
 
-  /* Playlist */
-  .section-label {
-    font-size: 10px; color: #444; font-weight: 600;
-    padding: 0 1px;
-    display: flex; justify-content: space-between;
-  }
-  .playlist {
-    background: white;
-    border: 1px solid #7a7a7a;
-    border-right-color: #ddd; border-bottom-color: #ddd;
-    height: 148px; overflow-y: auto;
-  }
-  .playlist::-webkit-scrollbar { width: 13px; }
-  .playlist::-webkit-scrollbar-track { background: #ece9d8; border-left: 1px solid #bbb; }
-  .playlist::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #e0ddd0 0%, #c8c4b0 100%);
-    border: 1px solid #aaa;
-  }
-
-  .pl-item {
-    padding: 3px 8px; cursor: pointer;
-    display: flex; align-items: center; gap: 7px;
-    border-bottom: 1px solid #f4f4f4;
-    font-size: 11px; color: #000;
-  }
-  .pl-item:hover { background: #c8ddf5; }
-  .pl-item.active { background: #316ac5; color: white; }
-  .pl-item.active .pl-num { color: #a8c8ff; }
-  .pl-num { font-size: 10px; color: #888; min-width: 20px; font-family: 'Courier New', monospace; }
+  .section-label { font-size: 11px; color: #555; font-weight: bold; padding: 0 1px; display: flex; justify-content: space-between; }
+  .playlist { background: white; border: 1px solid #aaa; height: 150px; overflow-y: auto; }
+  .pl-item { padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; font-size: 12px; color: #000; }
+  .pl-item:hover { background: #eee; }
+  .pl-item.active { background: #333; color: white; }
+  .pl-item.active .pl-num { color: #aaa; }
+  .pl-num { font-size: 10px; color: #aaa; min-width: 20px; }
   .pl-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pl-empty { padding: 14px 10px; color: #999; font-size: 11px; }
+  .pl-empty { padding: 14px 10px; color: #aaa; font-size: 12px; }
 
-  /* Open files btn */
   .open-btn {
-    width: 100%;
-    background: linear-gradient(180deg, #f5f2e8 0%, #dedad0 100%);
-    border: 1px solid #aaa;
-    border-bottom-color: #888; border-right-color: #888;
-    padding: 5px 10px; font-size: 11px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    width: 100%; background: #eee; border: 1px solid #aaa;
+    padding: 6px 10px; font-size: 12px; font-family: Arial, sans-serif;
     cursor: pointer; color: #000;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
     display: flex; align-items: center; justify-content: center; gap: 5px;
-    border-radius: 2px;
   }
-  .open-btn:hover { background: linear-gradient(180deg, #ddeeff 0%, #c8dff5 100%); border-color: #6a9fd0; }
-  .open-btn:active { transform: translateY(1px); }
+  .open-btn:hover { background: #ddd; }
+  .open-btn:active { background: #ccc; }
 
-  /* Audio output panel */
-  .bt-panel {
-    background: linear-gradient(180deg, #f0ede0 0%, #e8e4d8 100%);
-    border: 1px solid #aca899;
-    border-radius: 2px; overflow: hidden;
-  }
-  .bt-header {
-    padding: 4px 8px;
-    display: flex; align-items: center; justify-content: space-between;
-    cursor: pointer; user-select: none;
-    border-bottom: 1px solid transparent;
-  }
-  .bt-header:hover { background: #ddeeff; }
-  .bt-header.open { border-bottom-color: #aca899; }
-  .bt-header-left { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #000; }
-  .bt-dot { width: 7px; height: 7px; border-radius: 50%; background: #bbb; border: 1px solid #888; transition: background 0.3s; }
-  .bt-dot.connected { background: #22aa44; border-color: #118833; box-shadow: 0 0 3px #22aa44; }
-  .bt-dot.scanning { background: #2266ff; border-color: #1144cc; animation: blink 0.8s infinite; }
+  .bt-panel { background: #f5f5f5; border: 1px solid #ccc; }
+  .bt-header { padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; border-bottom: 1px solid transparent; font-size: 12px; }
+  .bt-header:hover { background: #e8e8e8; }
+  .bt-header.open { border-bottom-color: #ccc; }
+  .bt-header-left { display: flex; align-items: center; gap: 6px; color: #000; }
+  .bt-dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; border: 1px solid #888; transition: background 0.3s; }
+  .bt-dot.connected { background: #33aa55; border-color: #228833; }
+  .bt-dot.scanning { background: #3366ff; border-color: #1144cc; animation: blink 0.8s infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-  .bt-chevron { font-size: 9px; color: #666; transition: transform 0.2s; }
+  .bt-chevron { font-size: 10px; color: #666; transition: transform 0.2s; }
   .bt-chevron.open { transform: rotate(180deg); }
-
   .bt-body { padding: 6px; display: flex; flex-direction: column; gap: 4px; }
-
-  .bt-scan-btn {
-    background: linear-gradient(180deg, #f5f2e8 0%, #dedad0 100%);
-    border: 1px solid #aaa; border-bottom-color: #888;
-    padding: 3px 10px; font-size: 11px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    cursor: pointer; color: #000; border-radius: 2px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
-    display: flex; align-items: center; gap: 5px;
-  }
-  .bt-scan-btn:hover { background: linear-gradient(180deg, #ddeeff 0%, #c8dff5 100%); border-color: #6a9fd0; }
-  .bt-scan-btn:active { transform: translateY(1px); }
-
-  .bt-spinner { display: inline-block; width: 9px; height: 9px; border: 2px solid #ccc; border-top-color: #316ac5; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .bt-scan-btn { background: #eee; border: 1px solid #aaa; padding: 4px 10px; font-size: 12px; font-family: Arial, sans-serif; cursor: pointer; color: #000; display: flex; align-items: center; gap: 5px; }
+  .bt-scan-btn:hover { background: #ddd; }
+  .bt-spinner { display: inline-block; width: 9px; height: 9px; border: 2px solid #ccc; border-top-color: #333; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  .bt-status { font-size: 10px; color: #666; min-height: 13px; }
-
-  .bt-device-list {
-    background: white; border: 1px solid #aaa;
-    border-right-color: #ddd; border-bottom-color: #ddd;
-    max-height: 120px; overflow-y: auto;
-  }
-  .bt-device {
-    padding: 4px 8px; display: flex; align-items: center; gap: 7px;
-    border-bottom: 1px solid #f4f4f4; cursor: pointer; font-size: 11px; color: #000;
-  }
-  .bt-device:hover { background: #c8ddf5; }
-  .bt-device.selected { background: #316ac5; color: white; }
-  .bt-device.selected .bt-device-type { color: #a8c8ff; }
+  .bt-status { font-size: 11px; color: #666; min-height: 14px; }
+  .bt-device-list { background: white; border: 1px solid #aaa; max-height: 120px; overflow-y: auto; }
+  .bt-device { padding: 5px 8px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 12px; color: #000; }
+  .bt-device:hover { background: #eee; }
+  .bt-device.selected { background: #333; color: white; }
+  .bt-device.selected .bt-device-type { color: #aaa; }
   .bt-device-info { flex: 1; }
-  .bt-device-name { font-size: 11px; }
-  .bt-device-type { font-size: 9px; color: #888; }
-  .bt-use-btn {
-    background: linear-gradient(180deg, #f5f2e8 0%, #dedad0 100%);
-    border: 1px solid #aaa; border-bottom-color: #888;
-    padding: 2px 7px; font-size: 10px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    cursor: pointer; color: #000; border-radius: 2px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
-    white-space: nowrap;
-  }
-  .bt-use-btn:hover { background: linear-gradient(180deg, #ddeeff 0%, #c8dff5 100%); border-color: #6a9fd0; }
-  .bt-use-btn.active-btn { background: linear-gradient(180deg, #c8e8c8 0%, #a8d8a8 100%); border-color: #55aa55; color: #003300; }
+  .bt-device-name { font-size: 12px; }
+  .bt-device-type { font-size: 10px; color: #888; }
+  .bt-use-btn { background: #eee; border: 1px solid #aaa; padding: 2px 8px; font-size: 11px; font-family: Arial, sans-serif; cursor: pointer; color: #000; white-space: nowrap; }
+  .bt-use-btn:hover { background: #ddd; }
+  .bt-use-btn.active-btn { background: #afa; border-color: #6a6; color: #030; }
 
-  /* Status bar */
-  .statusbar {
-    background: #ece9d8;
-    border-top: 1px solid #aca899;
-    padding: 2px 6px;
-    display: flex; gap: 4px; font-size: 10px; color: #444;
-  }
-  .status-cell {
-    padding: 1px 5px;
-    border: 1px solid #aaa;
-    border-right-color: #eee; border-bottom-color: #eee;
-    background: white;
-  }
+  .statusbar { background: #eee; border-top: 1px solid #ccc; padding: 2px 6px; display: flex; gap: 4px; font-size: 10px; color: #555; }
+  .status-cell { padding: 1px 5px; border: 1px solid #ccc; background: white; }
 
   @media (max-width: 500px) {
-    body { padding: 0; align-items: flex-start; }
-    .window { max-width: 100%; border-radius: 0; min-height: 100vh; border: none; box-shadow: none; }
+    body { padding: 0; }
+    .window { max-width: 100%; min-height: 100vh; border: none; }
     .playlist { height: 180px; }
   }
 </style>
@@ -320,9 +173,7 @@
 <div class="window">
 
   <div class="titlebar">
-    <div class="titlebar-left">
-      Media Player
-    </div>
+    <div class="titlebar-left">Media Player</div>
     <div class="titlebar-btns">
       <div class="tbtn">_</div>
       <div class="tbtn">&#9633;</div>
@@ -381,13 +232,12 @@
       Open Files...
     </button>
 
-    <!-- Audio Output -->
     <div class="bt-panel">
       <div class="bt-header" id="bt-header" onclick="toggleBT()">
         <div class="bt-header-left">
           <div class="bt-dot" id="bt-dot"></div>
           Audio Output
-          <span id="bt-active-label" style="color:#555;font-weight:400;font-size:10px;"></span>
+          <span id="bt-active-label" style="color:#555;font-size:10px;"></span>
         </div>
         <div class="bt-chevron" id="bt-chevron">&#9660;</div>
       </div>
