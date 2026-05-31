@@ -12,15 +12,7 @@
 <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22Media+Player%22%2C%22short_name%22%3A%22Player%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg+xmlns%3D%2527http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527+viewBox%3D%25270+0+192+192%2527%253E%253Crect+width%3D%2527192%2527+height%3D%2527192%2527+rx%3D%252724%2527+fill%3D%2527%2523333%2527%2F%253E%253Ccircle+cx%3D%252796%2527+cy%3D%252796%2527+r%3D%252755%2527+fill%3D%2527none%2527+stroke%3D%2527white%2527+stroke-width%3D%25278%2527%2F%253E%253Cpolygon+points%3D%252778%2C68+78%2C124+130%2C96%2527+fill%3D%2527white%2527%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D"/>
 <script>
   if ('serviceWorker' in navigator) {
-    const swCode = `
-      self.addEventListener('install', e => { self.skipWaiting(); });
-      self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
-      self.addEventListener('fetch', e => {
-        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-      });
-    `;
-    const blob = new Blob([swCode], {type: 'application/javascript'});
-    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 </script>
 <style>
